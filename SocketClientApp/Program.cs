@@ -11,9 +11,9 @@ namespace SocketClientApp
             var stopWatch = new Stopwatch();
             stopWatch.Start();
 
-            var socketManager = new SocketWrapper(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 11000));
+            var socketManager = new SocketWrapper(new IPEndPoint(IPAddress.Loopback, 11000));
             
-            var response = socketManager.Call("GetDateTime<EOF>");
+            var response = socketManager.Call("GetDateTime");
 
             stopWatch.Stop();
 

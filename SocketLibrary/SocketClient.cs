@@ -8,12 +8,14 @@ namespace SocketLibrary
 {
     public class SocketClient : Socket
     {
+        private const string _eof = "<EOF/>";
+
         private readonly IPEndPoint _remoteEndPoint;
         private readonly Encoding _encoding;
 
-        private ManualResetEvent connectDone = new ManualResetEvent(false);
-        private ManualResetEvent sendDone = new ManualResetEvent(false);
-        private ManualResetEvent receiveDone = new ManualResetEvent(false);
+        private readonly ManualResetEvent connectDone = new ManualResetEvent(false);
+        private readonly ManualResetEvent sendDone = new ManualResetEvent(false);
+        private readonly ManualResetEvent receiveDone = new ManualResetEvent(false);
         
         public SocketClient(IPEndPoint remoteEndPoint, Encoding encoding = null)
             : base(remoteEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
@@ -111,7 +113,7 @@ namespace SocketLibrary
 
         private void Send(string data)
         {
-            var byteData = _encoding.GetBytes(data);
+            var byteData = _encoding.GetBytes(data + _eof);
 
             BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), this);
 

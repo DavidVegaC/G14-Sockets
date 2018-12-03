@@ -7,41 +7,44 @@ using System.Threading;
 
 namespace SocketLibrary
 {
-    public class SocketServer
+    public class SocketServer : Socket
     {
-        private ManualResetEvent _allDone = new ManualResetEvent(false);
+        private const string _eof = "<EOF/>";
+
+        private readonly ManualResetEvent _allDone = new ManualResetEvent(false);
         private readonly Func<StateObject, Socket, object, object> _dataReceivedCallback;
         private readonly Action<Socket, Socket> _clientConnectedCallback;
         private readonly Encoding _encoding;
+        private readonly IPEndPoint _localEndpoint;
+        private readonly int _connectionBacklog;
 
-        public SocketServer(Action<Socket, Socket> clientConnectedCallback,
+        public SocketServer(IPEndPoint localEndpoint,
+                            Action<Socket, Socket> clientConnectedCallback,
                             Func<StateObject, Socket, object, object> dataReceivedCallback,
+                            int connectionBacklog = 10,
                             Encoding encoding = null)
+            :base(localEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
         {
             _clientConnectedCallback = clientConnectedCallback;
             _dataReceivedCallback = dataReceivedCallback;
             _encoding = encoding ?? Encoding.UTF8;
+            _localEndpoint = localEndpoint;
+            _connectionBacklog = connectionBacklog;
         }
 
         public void StartListening()
-        {
-            var ipHostInfo = Dns.GetHostEntry("127.0.0.1");
-            var ipAddress = ipHostInfo.AddressList[0];
-            var localEndPoint = new IPEndPoint(ipAddress, 11000);
- 
-            var listener = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-
+        { 
             try
             {
-                listener.Bind(localEndPoint);
-                listener.Listen(100);
+                Bind(_localEndpoint);
+                Listen(_connectionBacklog);
 
                 while (true)
                 { 
                     _allDone.Reset();
 
                     Console.WriteLine("Waiting for a connection...");
-                    listener.BeginAccept(new AsyncCallback(AcceptCallback), listener);
+                    BeginAccept(new AsyncCallback(AcceptCallback), this);
 
                     _allDone.WaitOne();
                 }
@@ -61,7 +64,6 @@ namespace SocketLibrary
         {
             _allDone.Set();
 
-            // Get the socket that handles the client request.  
             var listener = (Socket)ar.AsyncState;
             var handler = listener.EndAccept(ar);
 
@@ -77,35 +79,25 @@ namespace SocketLibrary
         private void ReadCallback(IAsyncResult ar)
         {
             string content = string.Empty;
-
-            // Retrieve the state object and the handler socket  
-            // from the asynchronous state object.  
+ 
             var state = (StateObject)ar.AsyncState;
             var handler = state.workSocket;
-
-            // Read data from the client socket.   
+  
             var bytesRead = handler.EndReceive(ar);
 
             if (bytesRead > 0)
             {
-                // There  might be more data, so store the data received so far.  
                 state.sb.Append(_encoding.GetString(state.buffer, 0, bytesRead));
 
-                // Check for end-of-file tag. If it is not there, read   
-                // more data.  
                 content = state.sb.ToString();
-                if (content.IndexOf("<EOF>") > -1)
+                if (content.EndsWith(_eof))
                 {
-                    // All the data has been read from the   
-                    // client. Display it on the console.  
                     Console.WriteLine("Read {0} bytes from socket. \n Data : {1}", content.Length, content);
                     var response = _dataReceivedCallback(state, handler, content);
-                    // Echo the data back to the client.  
                     Send(handler, JsonConvert.SerializeObject(response));
                 }
                 else
                 {
-                    // Not all data received. Get more.  
                     handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReadCallback), state);
                 }
             }
@@ -114,8 +106,6 @@ namespace SocketLibrary
         private void Send(Socket handler, string data)
         {
             var byteData = _encoding.GetBytes(data);
-
-            // Begin sending the data to the remote device.  
             handler.BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), handler);
         }
 
@@ -130,7 +120,6 @@ namespace SocketLibrary
 
                 handler.Shutdown(SocketShutdown.Both);
                 handler.Close();
-
             }
             catch (Exception e)
             {
