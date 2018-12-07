@@ -27,10 +27,6 @@ namespace SocketLibrary.Serializer
 
         public string GetString(byte[] bytes)
         {
-            if(bytes[bytes.Length - 1] == ControlCharacters.EndOfTransmission)
-            {
-                bytes[bytes.Length - 1] = ControlCharacters.Null;
-            }
             return _encoding.GetString(bytes);
         }
 
@@ -39,18 +35,20 @@ namespace SocketLibrary.Serializer
             var jsonContent = JsonConvert.SerializeObject(socketMessage);
             var jsonBytes = _encoding.GetBytes(jsonContent);
 
-            var bytes = new byte[jsonBytes.Length + 1];
-            Buffer.BlockCopy(jsonBytes, 0, bytes, 0, jsonBytes.Length);
-            bytes[bytes.Length - 1] = ControlCharacters.EndOfTransmission;
+            var bytes = new byte[jsonBytes.Length + SocketMessageHeaders.MessageSizeEndIndex];
+            var messageSizeBytes = BitConverter.GetBytes(jsonBytes.Length);
+
+            //Set the message size using the first 4 bytes of the array.
+            Buffer.BlockCopy(messageSizeBytes, 0, bytes, 0, messageSizeBytes.Length);
+
+            //Fill the rest of the array with the socketMessage
+            Buffer.BlockCopy(jsonBytes, 0, bytes, messageSizeBytes.Length, jsonBytes.Length);
+
             return bytes;
         }
 
         public T Deserialize<T>(byte[] bytes)
         {
-            if (bytes[bytes.Length - 1] == ControlCharacters.EndOfTransmission)
-            {
-                bytes[bytes.Length - 1] = ControlCharacters.Null;
-            }
             var socketMessage = _encoding.GetString(bytes);
             return JsonConvert.DeserializeObject<T>(socketMessage);
         }

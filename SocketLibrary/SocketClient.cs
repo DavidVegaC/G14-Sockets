@@ -91,7 +91,15 @@ namespace SocketLibrary
                 var client = state.workSocket;
                 if (state.ByteBuffer == null)
                 {
-                    state.ByteBuffer = new byte[280];
+                    state.MessageSize = BitConverter.ToInt32(new byte[]
+                    {
+                        state.BytesRead[0],
+                        state.BytesRead[1],
+                        state.BytesRead[2],
+                        state.BytesRead[3]
+                    }, 0);
+
+                    state.ByteBuffer = new byte[state.MessageSize];
                 }
 
                 int bytesRead = client.EndReceive(ar);
@@ -99,12 +107,13 @@ namespace SocketLibrary
                 if (bytesRead > 0)
                 {
                     var bytesToRead = StateObject.BufferSize > bytesRead ? bytesRead : StateObject.BufferSize;
+                    var srcOffset = state.ByteBuffer[0] == ControlCharacters.Null ? SocketMessageHeaders.MessageSizeEndIndex : 0;
 
-                    Buffer.BlockCopy(state.BytesRead, 0, state.ByteBuffer, state.BufferOffset, bytesToRead);
+                    Buffer.BlockCopy(state.BytesRead, srcOffset, state.ByteBuffer, state.BufferOffset, bytesToRead - srcOffset);
 
-                    state.BufferOffset = state.BufferOffset + bytesToRead;
+                    state.BufferOffset = state.BufferOffset + bytesToRead - srcOffset;
 
-                    if(state.ByteBuffer[state.BufferOffset - 1] == ControlCharacters.EndOfTransmission)
+                    if (state.BufferOffset == state.MessageSize)
                     {
                         receiveDone.Set();
                     }

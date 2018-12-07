@@ -52,6 +52,7 @@
     <Compile Include="Serializer\JsonSerializer.cs" />
     <Compile Include="SocketClient.cs" />
     <Compile Include="ControlCharacters.cs" />
+    <Compile Include="SocketMessageHeaders.cs" />
     <Compile Include="SocketServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StateObject.cs" />

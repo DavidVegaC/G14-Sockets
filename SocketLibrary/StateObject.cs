@@ -10,6 +10,7 @@ namespace SocketLibrary
         internal int BufferOffset = 0;
         internal byte[] BytesRead = new byte[BufferSize];
         internal byte[] ByteBuffer;
+        internal int MessageSize;
         internal StringBuilder sb = new StringBuilder();
     }
 }
