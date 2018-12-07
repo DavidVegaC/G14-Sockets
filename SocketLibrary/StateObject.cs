@@ -3,11 +3,13 @@ using System.Text;
 
 namespace SocketLibrary
 {
-    public class StateObject
+    internal class StateObject
     {
-        public Socket workSocket = null;
-        public const int BufferSize = 1024;
-        public byte[] buffer = new byte[BufferSize];
-        public StringBuilder sb = new StringBuilder();
+        internal Socket workSocket = null;
+        internal const int BufferSize = 232;
+        internal int BufferOffset = 0;
+        internal byte[] BytesRead = new byte[BufferSize];
+        internal byte[] ByteBuffer;
+        internal StringBuilder sb = new StringBuilder();
     }
 }

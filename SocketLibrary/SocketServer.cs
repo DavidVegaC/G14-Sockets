@@ -8,26 +8,27 @@ using System.Threading;
 
 namespace SocketLibrary
 {
+    public delegate ISocketMessage DataReceivedCallback(string messageTypeName, string rawRequestString);
+
     public class SocketServer : Socket
     {
-        private const char _eof = '\0';
-
         private readonly ManualResetEvent _allDone = new ManualResetEvent(false);
-        private readonly Func<string, ISocketMessage> _dataReceivedCallback;
+        private readonly DataReceivedCallback _dataReceivedCallback;
         private readonly Encoding _encoding;
-        private readonly JsonSerializer _serializer;
+        private readonly ISerializer _serializer;
         private readonly IPEndPoint _localEndpoint;
         private readonly int _connectionBacklog;
 
         public SocketServer(IPEndPoint localEndpoint,
-                            Func<string, ISocketMessage> dataReceivedCallback,
+                            DataReceivedCallback dataReceivedCallback,
                             int connectionBacklog = 10,
+                            ISerializer serializer = null,
                             Encoding encoding = null)
             :base(localEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
         {
             _dataReceivedCallback = dataReceivedCallback;
             _encoding = encoding ?? Encoding.UTF8;
-            _serializer = new JsonSerializer();
+            _serializer = serializer ?? new JsonSerializer();
             _localEndpoint = localEndpoint;
             _connectionBacklog = connectionBacklog;
         }
@@ -71,40 +72,45 @@ namespace SocketLibrary
             {
                 workSocket = handler
             };
-            handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReadCallback), state);
+            handler.BeginReceive(state.BytesRead, 0, StateObject.BufferSize, 0, new AsyncCallback(ReadCallback), state);
         }
 
         private void ReadCallback(IAsyncResult ar)
-        {
-            string content = string.Empty;
- 
+        { 
             var state = (StateObject)ar.AsyncState;
             var handler = state.workSocket;
-  
+            if (state.ByteBuffer == null)
+            {
+                state.ByteBuffer = new byte[268];
+            }
+            
             var bytesRead = handler.EndReceive(ar);
 
             if (bytesRead > 0)
             {
-                state.sb.Append(_encoding.GetString(state.buffer, 0, bytesRead));
+                var bytesToRead = StateObject.BufferSize > bytesRead ? bytesRead : StateObject.BufferSize;
 
-                content = state.sb.ToString();
-                if (content.EndsWith(_eof.ToString()))
+                Buffer.BlockCopy(state.BytesRead, 0, state.ByteBuffer, state.BufferOffset, bytesToRead);
+
+                state.BufferOffset = state.BufferOffset + bytesToRead;
+
+                if (state.ByteBuffer[state.BufferOffset - 1] == ControlCharacters.EndOfTransmission)
                 {
-                    Console.WriteLine("Read {0} bytes from socket. \n Data : {1}", content.Length, content);
-                    content = content.TrimEnd('\0');
-                    var response = _dataReceivedCallback(content);
+                    var rawRequestString = _serializer.GetString(state.ByteBuffer);
+                    var messageTypeName = _serializer.GetValue(rawRequestString, "MessageType");
+                    Console.WriteLine("Read {0} bytes from socket. \n Data : {1}", state.ByteBuffer.Length, rawRequestString);
+                    var response = _dataReceivedCallback(messageTypeName, rawRequestString);
                     Send(handler, _serializer.Serialize(response));
                 }
                 else
                 {
-                    handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReadCallback), state);
+                    handler.BeginReceive(state.BytesRead, 0, StateObject.BufferSize, 0, new AsyncCallback(ReadCallback), state);
                 }
             }
         }
 
-        private void Send(Socket handler, string data)
+        private void Send(Socket handler, byte[] byteData)
         {
-            var byteData = _encoding.GetBytes(data);
             handler.BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), handler);
         }
 

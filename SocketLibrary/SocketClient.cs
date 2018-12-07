@@ -10,8 +10,6 @@ namespace SocketLibrary
 {
     public class SocketClient : Socket
     {
-        private const char _eof = '\0';
-
         private readonly IPEndPoint _remoteEndPoint;
         private readonly Encoding _encoding;
         private readonly JsonSerializer _serializer;
@@ -74,15 +72,10 @@ namespace SocketLibrary
                     workSocket = this
                 };
 
-                BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
+                BeginReceive(state.BytesRead, 0, StateObject.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
                 receiveDone.WaitOne();
 
-                var response = string.Empty;
-                if (state.sb.Length > 1)
-                {
-                    response = state.sb.ToString();
-                }
-                return _serializer.Deserialize<T>(response);
+                return _serializer.Deserialize<T>(state.ByteBuffer);
             }
             catch (Exception e)
             {
@@ -96,17 +89,29 @@ namespace SocketLibrary
             { 
                 var state = (StateObject)ar.AsyncState;
                 var client = state.workSocket;
+                if (state.ByteBuffer == null)
+                {
+                    state.ByteBuffer = new byte[280];
+                }
 
                 int bytesRead = client.EndReceive(ar);
 
                 if (bytesRead > 0)
                 {
-                    state.sb.Append(_encoding.GetString(state.buffer, 0, bytesRead));
-                    client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
-                }
-                else
-                {  
-                    receiveDone.Set();                 
+                    var bytesToRead = StateObject.BufferSize > bytesRead ? bytesRead : StateObject.BufferSize;
+
+                    Buffer.BlockCopy(state.BytesRead, 0, state.ByteBuffer, state.BufferOffset, bytesToRead);
+
+                    state.BufferOffset = state.BufferOffset + bytesToRead;
+
+                    if(state.ByteBuffer[state.BufferOffset - 1] == ControlCharacters.EndOfTransmission)
+                    {
+                        receiveDone.Set();
+                    }
+                    else
+                    {
+                        client.BeginReceive(state.BytesRead, 0, StateObject.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
+                    }
                 }
             }
             catch (Exception e)
@@ -117,8 +122,7 @@ namespace SocketLibrary
 
         private void Send(ISocketMessage socketMessage)
         {
-            var data = _serializer.Serialize(socketMessage);
-            var byteData = _encoding.GetBytes(data + _eof);
+            var byteData = _serializer.Serialize(socketMessage);
 
             BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), this);
 

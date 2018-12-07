@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-using SocketLibrary.Contracts;
+﻿using SocketLibrary.Contracts;
 using System;
 
 namespace SocketLibrary.Routing
@@ -13,10 +12,9 @@ namespace SocketLibrary.Routing
             _routeConfig = routeConfig;
         }
 
-        public ISocketMessage Dispatch(string rawRequest)
+        public ISocketMessage Dispatch(string messageTypeName, string rawRequest)
         {
-            var messageTypeString = JObject.Parse(rawRequest)["MessageType"].ToString();
-            var messageType = Type.GetType(messageTypeString);
+            var messageType = Type.GetType(messageTypeName);
 
             var parameterInstance = Activator.CreateInstance(messageType);
             var method = messageType.GetMethod("Parse");
