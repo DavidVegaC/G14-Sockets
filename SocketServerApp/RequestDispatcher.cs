@@ -6,7 +6,7 @@ namespace SocketServerApp
 {
     public class RequestDispatcher
     {
-        public ISocketMessage CreateCustomer(object socketMessage)
+        public ISocketMessage CreateCustomer(ISocketMessage socketMessage)
         {
             var createCustomerCommand = (CreateCustomerCommand)socketMessage;
 
@@ -17,7 +17,7 @@ namespace SocketServerApp
             };
         }
 
-        public ISocketMessage PlaceOrder(object socketMessage)
+        public ISocketMessage PlaceOrder(ISocketMessage socketMessage)
         {
             var placeOrderCommand = (PlaceOrderCommand)socketMessage;
 
@@ -30,7 +30,7 @@ namespace SocketServerApp
             };
         }
 
-        public ISocketMessage GetOrders(object socketMessage)
+        public ISocketMessage GetOrders(ISocketMessage socketMessage)
         {
             var getOrdersCommand = (GetOrdersCommand)socketMessage;
 

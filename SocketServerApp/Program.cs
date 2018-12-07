@@ -13,9 +13,13 @@ namespace SocketServerApp
             var requestDispatcher = new RequestDispatcher();
 
             var routingConfig = new RoutingConfig();
-            routingConfig.Register(typeof(CreateCustomerCommand), requestDispatcher.CreateCustomer);
-            routingConfig.Register(typeof(PlaceOrderCommand), requestDispatcher.PlaceOrder);
+            var createCutomerCommand = new CreateCustomerCommand();
+            routingConfig.Register(createCutomerCommand.MessageType, new Tuple<Parse, DispatchCommand>(createCutomerCommand.Parse, requestDispatcher.CreateCustomer));
 
+            var placeOrderCommand = new PlaceOrderCommand();
+            routingConfig.Register(placeOrderCommand.MessageType,
+                new Tuple<Parse, DispatchCommand>(placeOrderCommand.Parse, requestDispatcher.PlaceOrder));
+           
             var routeDispatcher = new RouteDispatcher(routingConfig);
 
             var server = new SocketServer(new IPEndPoint(IPAddress.Loopback, 11000),

@@ -26,7 +26,7 @@ namespace SocketClientApp
                 });
 
                 stopWatch.Stop();
-                //Console.WriteLine($"Elapsed: {stopWatch.Elapsed}");
+                Console.WriteLine($"Elapsed: {stopWatch.Elapsed}");
             }
 
 
