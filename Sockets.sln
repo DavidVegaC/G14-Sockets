@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SocketServerApp", "SocketSe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SocketClientApp", "SocketClientApp\SocketClientApp.csproj", "{22DB3829-7715-41C9-B550-EA5987EDF3B4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SocketAppContracts", "SocketAppContracts\SocketAppContracts.csproj", "{80EA4889-0606-4F57-BC07-8EF356A8B8A4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{22DB3829-7715-41C9-B550-EA5987EDF3B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{22DB3829-7715-41C9-B550-EA5987EDF3B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{22DB3829-7715-41C9-B550-EA5987EDF3B4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80EA4889-0606-4F57-BC07-8EF356A8B8A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80EA4889-0606-4F57-BC07-8EF356A8B8A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80EA4889-0606-4F57-BC07-8EF356A8B8A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80EA4889-0606-4F57-BC07-8EF356A8B8A4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

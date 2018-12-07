@@ -51,6 +51,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\SocketAppContracts\SocketAppContracts.csproj">
+      <Project>{80EA4889-0606-4F57-BC07-8EF356A8B8A4}</Project>
+      <Name>SocketAppContracts</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SocketLibrary\SocketLibrary.csproj">
       <Project>{e058bade-add8-445e-bb9b-022d98db9a58}</Project>
       <Name>SocketLibrary</Name>

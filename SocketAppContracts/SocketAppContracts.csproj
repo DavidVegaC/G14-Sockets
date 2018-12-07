@@ -4,17 +4,16 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{8BA0F384-DB2C-4160-967C-5E4035CF9A5A}</ProjectGuid>
-    <OutputType>Exe</OutputType>
-    <RootNamespace>SocketServerApp</RootNamespace>
-    <AssemblyName>SocketServerApp</AssemblyName>
+    <ProjectGuid>{80EA4889-0606-4F57-BC07-8EF356A8B8A4}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SocketAppContracts</RootNamespace>
+    <AssemblyName>SocketAppContracts</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -24,7 +23,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -43,20 +41,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Program.cs" />
+    <Compile Include="CreateCustomerCommand.cs" />
+    <Compile Include="CustomerCreatedReply.cs" />
+    <Compile Include="GetOrdersCommand.cs" />
+    <Compile Include="OrderPlacedReply.cs" />
+    <Compile Include="OrdersReply.cs" />
+    <Compile Include="PlaceOrderCommand.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RequestDispatcher.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\SocketAppContracts\SocketAppContracts.csproj">
-      <Project>{80EA4889-0606-4F57-BC07-8EF356A8B8A4}</Project>
-      <Name>SocketAppContracts</Name>
-    </ProjectReference>
     <ProjectReference Include="..\SocketLibrary\SocketLibrary.csproj">
-      <Project>{e058bade-add8-445e-bb9b-022d98db9a58}</Project>
+      <Project>{E058BADE-ADD8-445E-BB9B-022D98DB9A58}</Project>
       <Name>SocketLibrary</Name>
     </ProjectReference>
   </ItemGroup>

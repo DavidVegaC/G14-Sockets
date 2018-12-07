@@ -1,4 +1,5 @@
 ﻿using SocketLibrary;
+using SocketLibrary.Contracts;
 using System.Net;
 using System.Net.Sockets;
 
@@ -13,14 +14,14 @@ namespace SocketClientApp
             _remoteEndpoint = remoteEndpoint;
         }
 
-        public object Call(string remoteMethodName)
+        public T Call<T>(ISocketMessage socketMessage) where T : ISocketMessage
         {
-            object response;
+            T response;
             using (var socketClient = new SocketClient(_remoteEndpoint))
             {
                 socketClient.StartClient();
 
-                response = socketClient.Call(remoteMethodName);
+                response = socketClient.Call<T>(socketMessage);
 
                 socketClient.Shutdown(SocketShutdown.Both);
                 socketClient.Close();

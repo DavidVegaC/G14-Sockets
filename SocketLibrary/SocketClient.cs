@@ -3,15 +3,18 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Text;
+using SocketLibrary.Contracts;
+using SocketLibrary.Serializer;
 
 namespace SocketLibrary
 {
     public class SocketClient : Socket
     {
-        private const string _eof = "<EOF/>";
+        private const char _eof = '\0';
 
         private readonly IPEndPoint _remoteEndPoint;
         private readonly Encoding _encoding;
+        private readonly JsonSerializer _serializer;
 
         private readonly ManualResetEvent connectDone = new ManualResetEvent(false);
         private readonly ManualResetEvent sendDone = new ManualResetEvent(false);
@@ -22,6 +25,7 @@ namespace SocketLibrary
         {
             _remoteEndPoint = remoteEndPoint;
             _encoding = encoding ?? Encoding.UTF8;
+            _serializer = new JsonSerializer();
         }
 
         public void StartClient()
@@ -55,13 +59,13 @@ namespace SocketLibrary
             }
         }
 
-        public object Call(string content)
+        public T Call<T>(ISocketMessage socketMessage) where T : ISocketMessage
         {
-            Send(content);
-            return Receive();            
+            Send(socketMessage);
+            return Receive<T>();            
         }
 
-        private object Receive()
+        private T Receive<T>() where T : ISocketMessage
         {
             try
             {
@@ -78,7 +82,7 @@ namespace SocketLibrary
                 {
                     response = state.sb.ToString();
                 }
-                return response;
+                return _serializer.Deserialize<T>(response);
             }
             catch (Exception e)
             {
@@ -111,8 +115,9 @@ namespace SocketLibrary
             }
         }
 
-        private void Send(string data)
+        private void Send(ISocketMessage socketMessage)
         {
+            var data = _serializer.Serialize(socketMessage);
             var byteData = _encoding.GetBytes(data + _eof);
 
             BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), this);

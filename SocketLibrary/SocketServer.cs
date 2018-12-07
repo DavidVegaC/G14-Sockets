@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using SocketLibrary.Contracts;
+using SocketLibrary.Serializer;
 using System;
 using System.Net;
 using System.Net.Sockets;
@@ -9,25 +10,24 @@ namespace SocketLibrary
 {
     public class SocketServer : Socket
     {
-        private const string _eof = "<EOF/>";
+        private const char _eof = '\0';
 
         private readonly ManualResetEvent _allDone = new ManualResetEvent(false);
-        private readonly Func<StateObject, Socket, object, object> _dataReceivedCallback;
-        private readonly Action<Socket, Socket> _clientConnectedCallback;
+        private readonly Func<string, ISocketMessage> _dataReceivedCallback;
         private readonly Encoding _encoding;
+        private readonly JsonSerializer _serializer;
         private readonly IPEndPoint _localEndpoint;
         private readonly int _connectionBacklog;
 
         public SocketServer(IPEndPoint localEndpoint,
-                            Action<Socket, Socket> clientConnectedCallback,
-                            Func<StateObject, Socket, object, object> dataReceivedCallback,
+                            Func<string, ISocketMessage> dataReceivedCallback,
                             int connectionBacklog = 10,
                             Encoding encoding = null)
             :base(localEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
         {
-            _clientConnectedCallback = clientConnectedCallback;
             _dataReceivedCallback = dataReceivedCallback;
             _encoding = encoding ?? Encoding.UTF8;
+            _serializer = new JsonSerializer();
             _localEndpoint = localEndpoint;
             _connectionBacklog = connectionBacklog;
         }
@@ -67,8 +67,6 @@ namespace SocketLibrary
             var listener = (Socket)ar.AsyncState;
             var handler = listener.EndAccept(ar);
 
-            _clientConnectedCallback(listener, handler);
-
             var state = new StateObject
             {
                 workSocket = handler
@@ -90,11 +88,12 @@ namespace SocketLibrary
                 state.sb.Append(_encoding.GetString(state.buffer, 0, bytesRead));
 
                 content = state.sb.ToString();
-                if (content.EndsWith(_eof))
+                if (content.EndsWith(_eof.ToString()))
                 {
                     Console.WriteLine("Read {0} bytes from socket. \n Data : {1}", content.Length, content);
-                    var response = _dataReceivedCallback(state, handler, content);
-                    Send(handler, JsonConvert.SerializeObject(response));
+                    content = content.TrimEnd('\0');
+                    var response = _dataReceivedCallback(content);
+                    Send(handler, _serializer.Serialize(response));
                 }
                 else
                 {

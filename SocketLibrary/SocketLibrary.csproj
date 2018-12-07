@@ -44,6 +44,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Contracts\ISocketMessage.cs" />
+    <Compile Include="Contracts\SocketMessage.cs" />
+    <Compile Include="Routing\RouteDispatcher.cs" />
+    <Compile Include="Routing\RoutingConfig.cs" />
+    <Compile Include="Serializer\JsonSerializer.cs" />
     <Compile Include="SocketClient.cs" />
     <Compile Include="SocketServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
