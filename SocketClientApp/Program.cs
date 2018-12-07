@@ -10,11 +10,31 @@ namespace SocketClientApp
         static void Main(string[] args)
         {
             var stopWatch = new Stopwatch();
-            stopWatch.Start();
+            
 
             var socketWrapper = new SocketWrapper(new IPEndPoint(IPAddress.Loopback, 11000));
 
             var response = socketWrapper.Call<OrderPlacedReply>(new PlaceOrderCommand
+            {
+                CustomerName = "Peter Brigs",
+                OrderItem = "Asus 34\" monitor",
+                CustomerId = "ABC123",
+                CorrelationId = Guid.NewGuid().ToString(),
+            });
+
+
+            response = socketWrapper.Call<OrderPlacedReply>(new PlaceOrderCommand
+            {
+                CustomerName = "Peter Brigs",
+                OrderItem = "Asus 34\" monitor",
+                CustomerId = "ABC123",
+                CorrelationId = Guid.NewGuid().ToString(),
+            });
+
+
+            stopWatch.Start();
+
+            response = socketWrapper.Call<OrderPlacedReply>(new PlaceOrderCommand
             {
                 CustomerName = "Peter Brigs",
                 OrderItem = "Asus 34\" monitor",
