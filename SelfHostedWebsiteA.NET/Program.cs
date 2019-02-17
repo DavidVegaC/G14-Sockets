@@ -13,6 +13,8 @@ namespace SelfHostedWebsiteA.NET
 
         static void Main(string[] args)
         {
+            Console.Title = "Client A";
+
             var serverAddress = "http://localhost:10000/";
             var clientAddress = "http://localhost:11111/";
 
@@ -33,16 +35,16 @@ namespace SelfHostedWebsiteA.NET
         {
             var timer = new Timer
             {
-                Interval = 10000,                
+                Interval = 5000,                
                 AutoReset = true,
                 Enabled = true
             };
 
             timer.Elapsed += async (object sender, ElapsedEventArgs e) =>
             {
-                Console.WriteLine($"{DateTime.UtcNow.ToString("HH:mm:ss.ffff")} Sending request");
-                var response = await _ipcClient.Call<SampleMessage>(new SampleMessage { Message = "Client A" });
-                //Console.WriteLine($"{DateTime.UtcNow.ToString("HH:mm:ss.ffff")} {response.Message}");
+                Console.ForegroundColor = ConsoleColor.DarkGreen;
+                Console.WriteLine($"{DateTime.UtcNow.ToString("ss.fff")} Sending request to Client B");
+                var response = await _ipcClient.Call<SampleMessage>(new SampleMessage { Message = "Client A" });                
             };            
         }
     }

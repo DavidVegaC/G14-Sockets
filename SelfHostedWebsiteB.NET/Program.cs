@@ -13,6 +13,8 @@ namespace SelfHostedWebsiteB.NET
 
         static void Main(string[] args)
         {
+            Console.Title = "Client B";
+
             var serverAddress = "http://localhost:11111/";
             var clientAddress = "http://localhost:10000/";
 
@@ -21,7 +23,7 @@ namespace SelfHostedWebsiteB.NET
 
             _ipcClient = new WebApiClient(clientAddress, "api/values");
 
-            //ClientSendRequest();
+            ClientSendRequest();
 
             Console.ReadLine();
 
@@ -33,14 +35,16 @@ namespace SelfHostedWebsiteB.NET
         {
             var timer = new Timer
             {
-                Interval = 2500,
+                Interval = 7000,
                 AutoReset = true,
                 Enabled = true
             };
 
-            timer.Elapsed += (object sender, ElapsedEventArgs e) =>
+            timer.Elapsed += async (object sender, ElapsedEventArgs e) =>
             {
-                _ipcClient.Send(new SampleMessage { Message = "Client B" });
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Console.WriteLine($"{DateTime.UtcNow.ToString("ss.fff")} Sending request to Client A");
+                var response = await _ipcClient.Call<SampleMessage>(new SampleMessage { Message = "Client B" });
             };
         }
     }
