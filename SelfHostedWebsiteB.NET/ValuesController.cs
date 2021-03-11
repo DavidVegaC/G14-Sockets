@@ -24,8 +24,8 @@ namespace SelfHostedWebsiteB.NET
         public async Task<SampleMessage> Post([FromBody]SampleMessage request)
         {
             Console.ForegroundColor = ConsoleColor.DarkGreen;
-            Console.WriteLine($"{DateTime.UtcNow.ToString("ss.fff")} Processing request from {request.Message}");
-            return await Task.FromResult(new SampleMessage { Message = $"Response from Client B" });
+            Console.WriteLine($"{DateTime.UtcNow.ToString("ss.fff")} Procesando petición de {request.Message}");
+            return await Task.FromResult(new SampleMessage { Message = $"Respuesta de Cliente A" });
         }
 
         // PUT api/values/5 
